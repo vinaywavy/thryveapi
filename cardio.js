@@ -67,6 +67,14 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
         })
         .catch(function(error){
             console.log(error)
+        }).finally(() => {
+          tDate = new Date()
+          tDay = tDate.toISOString().substring(0,10)
+          utcTime = 'T00:00:00+01:00'
+          today = tDay.concat(utcTime)
+          tomDate = new Date(tDate.getTime() + ( 24 * 60 * 60 * 1000)).toISOString().substring(0,10)
+          tomorrow = tomDate.concat(utcTime)
+          console.log(`Value for tDate is : ${tDate}; Today val is ${today} ; tom val is: ${tomorrow}`)
         })
   }
 
