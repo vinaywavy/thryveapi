@@ -47,7 +47,7 @@ const config = {
 
 const firestore = getFirestore()
 
-const date = new Date().toISOString().substring(0,10)
+const date = new Date().toISOString()
 
 const specialOfTheDay = doc(firestore, `Cardio/${date}`)
 
@@ -62,11 +62,20 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
             console.log(`Length of the Array is ${heartRate.length}`)
             setTimeout(() => {
               writeDailySpecial()
-              console.log(`Data has been updated on ${tDate} in the firebase`)
+              //console.log(`Data has been updated on ${Date().toISOString()} in the db`)
             }, 50000);
         })
         .catch(function(error){
             console.log(error)
+        })
+        .finally(() => {
+          tDate = new Date()
+          tDay = tDate.toISOString().substring(0,10)
+          utcTime = 'T00:00:00+01:00'
+          today = tDay.concat(utcTime)
+          tomDate = new Date(tDate.getTime() + ( 48 * 60 * 60 * 1000)).toISOString().substring(0,10)
+          tomorrow = tomDate.concat(utcTime)
+          console.log(`Value for tDate is : ${tDate}; Today val is ${today} ; tom val is: ${tomorrow}`)
         })
   }
 
@@ -78,11 +87,16 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
     
     try{
         await setDoc(specialOfTheDay, docData, {merge: true});
-        console.log("This has been updated in the fire database")
+        let dbDate = new Date().toISOString()
+        console.log(`The doc has been written on ${dbDate}`)
       } catch(error) {
         console.log(`I got an error ${error}`)
     }
 }
 
-let task = cron.schedule('* * */4 * *', getEpochVal)
+let task = cron.schedule('*/2 * * * *', getEpochVal)
 task.start()
+
+// setTimeout(() => {
+//   console.log(`Global value of today is : ${today} and Global value of tom is : ${tomorrow}`)
+// }, 50000)
