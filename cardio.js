@@ -6,34 +6,6 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 import cron from 'node-cron'
 
-let tDate = new Date()
-let tDay = tDate.toISOString().substring(0,10)
-let utcTime = 'T00:00:00+01:00'
-let today = tDay.concat(utcTime)
-let tomDate = new Date(tDate.getTime() + ( 24 * 60 * 60 * 1000)).toISOString().substring(0,10)
-let tomorrow = tomDate.concat(utcTime)
-
-const authData = qs.stringify({
-    'authenticationToken': process.env.AUTHENTICATION_TOKEN,
-    'startTimestamp': `${today}`,
-    'endTimestamp': `${tomorrow}`,
-    'dataSources': '2',
-    'valueTypes': '3000',
-    'detailed': 'false' 
-  });
-
-const config = {
-    method: 'post',
-    maxBodyLength: Infinity,
-    url: 'https://api.und-gesund.de/v5/dynamicEpochValues',
-    headers: { 
-      'AppAuthorization': process.env.APP_AUTHORIZATION, 
-      'Content-Type': 'application/x-www-form-urlencoded', 
-      'Authorization': process.env.AUTHORIZATION
-    },
-    data : authData
-  };
-
   let heartRate = []
 
   const firebaseApp = initializeApp({
@@ -53,6 +25,35 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
 
 
   async function getEpochVal() {
+
+    let tDate = new Date()
+    let tDay = tDate.toISOString().substring(0,10)
+    let utcTime = 'T00:00:00+01:00'
+    let today = tDay.concat(utcTime)
+    let tomDate = new Date(tDate.getTime() + ( 24 * 60 * 60 * 1000)).toISOString().substring(0,10)
+    let tomorrow = tomDate.concat(utcTime)
+
+    const authData = qs.stringify({
+        'authenticationToken': process.env.AUTHENTICATION_TOKEN,
+        'startTimestamp': `${today}`,
+        'endTimestamp': `${tomorrow}`,
+        'dataSources': '2',
+        'valueTypes': '3000',
+        'detailed': 'false' 
+      });
+
+    const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://api.und-gesund.de/v5/dynamicEpochValues',
+        headers: { 
+          'AppAuthorization': process.env.APP_AUTHORIZATION, 
+          'Content-Type': 'application/x-www-form-urlencoded', 
+          'Authorization': process.env.AUTHORIZATION
+        },
+        data : authData
+      };
+
       await axios(config)
         .then(function(response) {
             let thryveData = response.data
@@ -67,14 +68,6 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
         })
         .catch(function(error){
             console.log(error)
-        }).finally(() => {
-          tDate = new Date()
-          tDay = tDate.toISOString().substring(0,10)
-          utcTime = 'T00:00:00+01:00'
-          today = tDay.concat(utcTime)
-          tomDate = new Date(tDate.getTime() + ( 24 * 60 * 60 * 1000)).toISOString().substring(0,10)
-          tomorrow = tomDate.concat(utcTime)
-          console.log(`Value for tDate is : ${tDate}; Today val is ${today} ; tom val is: ${tomorrow}`)
         })
   }
 
@@ -92,5 +85,5 @@ const specialOfTheDay = doc(firestore, `Cardio/${date}`)
     }
 }
 
-let task = cron.schedule('* * */4 * *', getEpochVal)
+let task = cron.schedule('*/1 * * * *', getEpochVal)
 task.start()
